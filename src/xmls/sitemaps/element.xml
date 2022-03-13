@@ -1,0 +1,8 @@
+	<url>
+		<loc>:loc</loc>
+		:mobile
+		<lastmod>:lastmod</lastmod>
+		<changefreq>:frequency</changefreq>
+		<priority>:priority</priority>
+		:langs
+	</url>
