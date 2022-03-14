@@ -227,7 +227,7 @@ class Runner {
 	 * @return void
 	 * @throws Exception
 	 */
-	public function pushURL(string $loc, string $lastmod, float $priority = 0.5, bool $has_mobile = false) {
+	public function pushURL(string $loc, string $lastmod, float $priority, string $frequency, bool $has_mobile = false) {
 		if (empty($this->output_dir)) {
 			throw new Exception('Please set the path of the sitemap via the `setPath` method before populating the sitemap');
 		}
@@ -248,7 +248,7 @@ class Runner {
 			}
 		}
 
-		$url = new Url($loc, $lastmod, $priority, $has_mobile);
+		$url = new Url($loc, $lastmod, $priority, $frequency, $has_mobile);
 		$this->getCurrentSitemap()->addUrl($url);
 		$this->addCountURLs();
 	}
