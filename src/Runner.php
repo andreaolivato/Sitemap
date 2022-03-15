@@ -358,7 +358,7 @@ class Runner {
 		$this->sitemaps_locations[] = $this->getCurrentSitemap()->getWebAddress(false);
 		if ($this->getCountSitemaps() > 1) {
 			if ($this->isVerbose()) {
-				echo "Writing Sitemap Index to ".$this->getDir().'sitemap.xml'.PHP_EOL;
+				echo "Writing Sitemap Index to ".$this->getDir().$this->getFilenameSingle().PHP_EOL;
 			}
 			$index = new SitemapIndex($this->getSitemapsLocations(), $this->getDir(), $this->getFilenameSingle());
 			$index->write();
