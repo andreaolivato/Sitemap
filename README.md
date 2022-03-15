@@ -1,6 +1,7 @@
 # Sitemap
 
 Dynamic Sitemap generator in PHP with multi-sitemap and sitemap index support.
+Optional support for multi-language via hreflang
 
 ## Features
 
