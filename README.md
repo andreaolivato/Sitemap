@@ -12,6 +12,7 @@ Current features include:
 - Automatically generate Sitemap Index
 - Specify if URL is mobile-ready
 - Multi-language support with hreflang
+- Customise names and paths to save the XML
 - Ping Google
 
 ## Working on
@@ -123,3 +124,4 @@ Available Examples:
 - Small, simple sitemap
 - Large, random sitemap
 - Complex sitemap with multiple languages per URL
+- Rename sitemap

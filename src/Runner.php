@@ -20,21 +20,25 @@ class Runner {
 	 * @var bool
 	 */
 	private bool $verbose = false;
+
 	/**
 	 * Allow relative paths to be used. (discouraged)
 	 * @var bool
 	 */
 	private bool $allow_relative_paths = false;
+
 	/**
 	 * Number of Sitemaps being generated so far
 	 * @var int
 	 */
 	private int $count_sitemaps = 0;
+
 	/**
 	 * Current Sitemap being worked on
 	 * @var Sitemap
 	 */
 	private Sitemap $current_sitemap;
+
 	/**
 	 * Directory where the sitemaps will be saved.
 	 * Should be writable from the user running the script.
@@ -43,6 +47,7 @@ class Runner {
 	 * @var string
 	 */
 	private string $output_dir;
+
 	/**
 	 * URL of the directory that will contain the Sitemaps
 	 * Must be accessible via web and be a valid URL
@@ -50,11 +55,31 @@ class Runner {
 	 * @var string
 	 */
 	private string $http_dir;
+
 	/**
 	 * Simple counter to keep track of how many URLs have been added so far
 	 * @var int
 	 */
 	private int $count_urls = 0;
+
+	/**
+	 * Filename pattern used to generate the names of Multiple sitemaps
+	 * E.g. sitemap_%s.xml
+	 * @var string
+	 */
+	private string $filename_multiple;
+
+	/**
+	 * Filename for Single Sitemap or SitemapIndex
+	 * @var string
+	 */
+	private string $filename_single;
+
+	/**
+	 * Sitemap Locations Array
+	 * @var array
+	 */
+	private array $sitemaps_locations;
 
 	/**
 	 * Contructor for the Runner object
@@ -78,6 +103,24 @@ class Runner {
 		if ($http_dir) {
 			$this->setHTTPDir($http_dir);
 		}
+		$this->sitemaps_locations = [];
+		$this->filename_single = Sitemap::BASE_FILE_SINGLE;
+		$this->filename_multiple = Sitemap::BASE_FILE;
+	}
+
+	/**
+	 * Set custom filenames for the sitemaps
+	 * @param string $single filename used when there's only one sitemap, or for the sitemapindex.
+	 * @param string $multiple filename used for multiple sitemaps. Must be a pattern like sitemap_%s.xml
+	 * @return void
+	 * @throws Exception
+	 */
+	public function setFilenames(string $single, string $multiple) {
+		if (stripos($multiple, "%s") === false) {
+			throw new Exception('The multiple variable must contain a pattern, in form of %s. E.g. sitemap_%s.xml');
+		}
+		$this->filename_single = $single;
+		$this->filename_multiple = $multiple;
 	}
 
 	/**
@@ -166,7 +209,41 @@ class Runner {
 	 */
 	public function addSitemap() {
 		$this->count_sitemaps++;
-		$this->current_sitemap = new Sitemap($this->getDir(), $this->getCountSitemaps(), $this->isVerbose());
+		$this->current_sitemap = new Sitemap($this->getDir(), $this->getHTTPDir(), $this->getCountSitemaps(), $this->isVerbose());
+		$this->current_sitemap->setFilenames($this->getFilenameSingle(), $this->getFilenameMultiple());
+	}
+
+	/**
+	 * Get the filename for Single sitemap or SitemapIndex
+	 * @return string
+	 */
+	public function getFilenameSingle() {
+		return $this->filename_single;
+	}
+
+	/**
+	 * Get the filename pattern for Multiple sitemaps
+	 * @return string
+	 */
+	public function getFilenameMultiple() {
+		return $this->filename_multiple;
+	}
+
+	/**
+	 * Get the list of sitemaps web locations for the sitemap index
+	 * @return array
+	 */
+	public function getSitemapsLocations() {
+		return $this->sitemaps_locations;
+	}
+
+	/**
+	 * Manually add a Sitemap Location
+	 * Useful if you have a static file and you want to add it to the SitemapIndex
+	 * @return array
+	 */
+	public function appendSitemapsLocation(string $location) {
+		return $this->sitemaps_locations[] = $location;
 	}
 
 	/**
@@ -213,7 +290,6 @@ class Runner {
 			$output_dir .= '/';
 		}
 		$this->output_dir = $output_dir;
-		$this->addSitemap();
 	}
 
 	/**
@@ -228,9 +304,6 @@ class Runner {
 	 * @throws Exception
 	 */
 	public function pushURL(string $loc, string $lastmod, float $priority, string $frequency, bool $has_mobile = false) {
-		if (empty($this->output_dir)) {
-			throw new Exception('Please set the path of the sitemap via the `setPath` method before populating the sitemap');
-		}
 		$url = new Url($loc, $lastmod, $priority, $frequency, $has_mobile);
 		$this->pushURLObject($url);
 	}
@@ -244,8 +317,14 @@ class Runner {
 	 * @throws Exception
 	 */
 	public function pushURLObject(Url $url) {
+		if (!isset($this->current_sitemap)) {
+			$this->addSitemap();
+		}
 		if (empty($this->output_dir)) {
-			throw new Exception('Please set the path of the sitemap via the `setPath` method before populating the sitemap');
+			throw new Exception('Please set the path of the sitemap via the `setOutputDir` method before populating the sitemap');
+		}
+		if (empty($this->http_dir)) {
+			throw new Exception('Please set the Web path of the sitemap via the `setHTTPDir` method before populating the sitemap');
 		}
 		if ($this->isVerbose()) {
 			if ($this->getCurrentSitemap()->getSize() == 0) {
@@ -257,6 +336,7 @@ class Runner {
 
 		if ($this->getCurrentSitemap()->getSize() >= Sitemap::MAX_URLS) {
 			$this->getCurrentSitemap()->write(true);
+			$this->sitemaps_locations[] = $this->getCurrentSitemap()->getWebAddress(true);
 			$this->addSitemap();
 			if ($this->isVerbose()) {
 				echo "Starting Sitemap ".$this->getCountSitemaps().PHP_EOL;
@@ -275,11 +355,12 @@ class Runner {
 	 */
 	public function end() {
 		$this->getCurrentSitemap()->write(false);
+		$this->sitemaps_locations[] = $this->getCurrentSitemap()->getWebAddress(false);
 		if ($this->getCountSitemaps() > 1) {
 			if ($this->isVerbose()) {
 				echo "Writing Sitemap Index to ".$this->getDir().'sitemap.xml'.PHP_EOL;
 			}
-			$index = new SitemapIndex($this->getDir(), $this->getHTTPDir(), $this->getCountSitemaps());
+			$index = new SitemapIndex($this->getSitemapsLocations(), $this->getDir(), $this->getFilenameSingle());
 			$index->write();
 		}
 		if ($this->isVerbose()) {
@@ -297,7 +378,7 @@ class Runner {
 		if (empty($this->http_dir)) {
 			throw new Exception('Please set the HTTP path of the sitemap via the `setHTTPDir` method before pinging Google');
 		}
-		$sitemap_url = $this->getHTTPDir().'sitemap.xml';
+		$sitemap_url = $this->getHTTPDir().$this->getFilenameSingle();
 		if ($this->isVerbose()) {
 			echo "*** PINGING GOOGLE FOR ".$sitemap_url.PHP_EOL;
 		}

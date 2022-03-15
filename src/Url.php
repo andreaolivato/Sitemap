@@ -109,7 +109,8 @@ class Url {
 		$xml = file_get_contents(self::BASE_XML);
 		$mobile = '';
 		if ($this->getHasMobile()) {
-			$mobile = '<mobile:mobile/>';
+			$mobile = '
+		<mobile:mobile/>';
 		}
 		$langs = '';
 		if ($this->hasLangs()) {
