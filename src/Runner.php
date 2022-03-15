@@ -217,7 +217,7 @@ class Runner {
 	}
 
 	/**
-	 * Add an URL to the Runner.
+	 * Add an URL to the Runner, generating the URL Object
 	 * If the Sitemap has space, the URL will be added to the current sitemap.
 	 * Otherwise, the Runner will close the previous Sitemap, create a new one and add the URL to the new Sitemap
 	 * @param string $loc the URL to be added to the sitemap. Must be a valid URL.
@@ -231,7 +231,22 @@ class Runner {
 		if (empty($this->output_dir)) {
 			throw new Exception('Please set the path of the sitemap via the `setPath` method before populating the sitemap');
 		}
+		$url = new Url($loc, $lastmod, $priority, $frequency, $has_mobile);
+		$this->pushURLObject($url);
+	}
 
+	/**
+	 * Add an URL Object to the Runner.
+	 * If the Sitemap has space, the URL will be added to the current sitemap.
+	 * Otherwise, the Runner will close the previous Sitemap, create a new one and add the URL to the new Sitemap
+	 * @param Url $url The URL object
+	 * @return void
+	 * @throws Exception
+	 */
+	public function pushURLObject(Url $url) {
+		if (empty($this->output_dir)) {
+			throw new Exception('Please set the path of the sitemap via the `setPath` method before populating the sitemap');
+		}
 		if ($this->isVerbose()) {
 			if ($this->getCurrentSitemap()->getSize() == 0) {
 				echo "Starting Sitemap ".$this->getCountSitemaps().PHP_EOL;
@@ -248,7 +263,6 @@ class Runner {
 			}
 		}
 
-		$url = new Url($loc, $lastmod, $priority, $frequency, $has_mobile);
 		$this->getCurrentSitemap()->addUrl($url);
 		$this->addCountURLs();
 	}

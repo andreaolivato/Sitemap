@@ -3,6 +3,5 @@
 		:mobile
 		<lastmod>:lastmod</lastmod>
 		<changefreq>:frequency</changefreq>
-		<priority>:priority</priority>
-		:langs
+		<priority>:priority</priority>:langs
 	</url>

@@ -10,11 +10,11 @@ Current features include:
 - Generate Multiple Sitemaps if submitting more than 500,000 URLs
 - Automatically generate Sitemap Index
 - Specify if URL is mobile-ready
+- Multi-language support with hreflang
 - Ping Google
 
 ## Working on
 
-- Multi-language support with hreflang
 - Image support
 - Video Support
 
@@ -33,7 +33,7 @@ composer require gimucco/sitemap
 ## Code Example for generating a simple sitemap
 
 The below code shows how to generate a simple sitemap starting from an array of URLs.
-Refer to the `examples` folder for more detailed examples and options.
+Refer to the `examples` folder for more detailed examples and options. 
 
 ```PHP
 use Gimucco\Sitemap\Runner;
@@ -117,3 +117,8 @@ Sitemap::timeOneMonth(); // One month ago
 
 ## Examples
 Refer to the `examples` folder for quick examples on how to use the various options
+
+Available Examples:
+- Small, simple sitemap
+- Large, random sitemap
+- Complex sitemap with multiple languages per URL

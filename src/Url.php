@@ -58,6 +58,12 @@ class Url {
 	private $has_mobile;
 
 	/**
+	 * Contains the definition of languages
+	 * @var array
+	 */
+	private array $langs;
+
+	/**
 	 * Constructor of the Url object
 	 * @param string $loc URL of the resource added to the sitemap. Must be a valid Web URL
 	 * @param string $lastmod date in which the resource was last edited. Must be in ISO8601 format. You can use `convertDateToISO8601()` or the `convertTimestampToISO8601` to convert a different format
@@ -83,6 +89,16 @@ class Url {
 		$this->priority = $priority;
 		$this->frequency = $frequency;
 		$this->has_mobile = $has_mobile;
+		$this->langs = [];
+	}
+
+	/**
+	 * Push a new Language
+	 * @param UrlLang $lang
+	 * @return void
+	 */
+	public function pushLang(UrlLang $lang) {
+		$this->langs[] = $lang;
 	}
 
 	/**
@@ -95,12 +111,18 @@ class Url {
 		if ($this->getHasMobile()) {
 			$mobile = '<mobile:mobile/>';
 		}
+		$langs = '';
+		if ($this->hasLangs()) {
+			foreach ($this->getLangs() as $lang) {
+				$langs .= $lang->getXml();
+			}
+		}
 		$xml = strtr($xml, [
 			':loc' => $this->getLoc(),
 			':lastmod' => $this->getLastmod(),
 			':frequency' => $this->getFrequency(),
 			':priority' => $this->getPriority(),
-			':langs' => '',
+			':langs' => $langs,
 			':mobile' => $mobile
 		]);
 		return $xml;
@@ -144,6 +166,22 @@ class Url {
 	 */
 	public function getHasMobile() {
 		return $this->has_mobile;
+	}
+
+	/**
+	 * get Languages
+	 * @return UrlLang[]
+	 */
+	public function getLangs() {
+		return $this->langs;
+	}
+
+	/**
+	 * Check if I have Languages
+	 * @return bool
+	 */
+	public function hasLangs() {
+		return (bool) sizeof($this->langs);
 	}
 
 	/**
