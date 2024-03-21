@@ -27,11 +27,12 @@ class UrlLang {
 	 * Construct for the UrlLang object
 	 * @param string $lang the language ISO code (2 letters)
 	 * @param string $url the URL of the localised page
+	 * @param bool $ignore_validation skip validation of the URL
 	 * @return void
 	 * @throws Exception
 	 */
-	public function __construct(string $lang, string $url) {
-		if (!filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED)) {
+	public function __construct(string $lang, string $url, bool $ignore_validation = false) {
+		if (!$ignore_validation && !filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED)) {
 			throw new Exception('The specified url "'.$url.'" is not a valid URL');
 		}
 		$this->lang = $lang;
