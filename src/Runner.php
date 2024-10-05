@@ -82,14 +82,21 @@ class Runner {
 	private array $sitemaps_locations;
 
 	/**
+	 * Max URLs/Items per sitemap
+	 * @var int
+	 */
+	private int $max_urls = Sitemap::MAX_URLS;
+
+	/**
 	 * Contructor for the Runner object
 	 * @param string $output_dir the directory where sitemaps will be saved
 	 * @param string $http_dir the URL to reach the above directory via web
 	 * @param array $options valid options: OPTION_VERBOSE or OPTION_ALLOW_RELATIVE_PATHS
+	 * @param int $max_urls number of max urls in the sitemap
 	 * @return void
 	 * @throws Exception
 	 */
-	public function __construct(string $output_dir = '', string $http_dir = '', array $options = []) {
+	public function __construct(string $output_dir = '', string $http_dir = '', array $options = [], int $max_urls = Sitemap::MAX_URLS) {
 		foreach ($options as $option) {
 			if (empty(self::OPTIONS[$option])) {
 				throw new Exception('Invalid Option "'.$option.'". Valid options are only "'.implode(',', array_keys(self::OPTIONS)).'"');
@@ -102,6 +109,9 @@ class Runner {
 		}
 		if ($http_dir) {
 			$this->setHTTPDir($http_dir);
+		}
+		if ($max_urls > 0) {
+			$this->setMaxUrls($max_urls);
 		}
 		$this->sitemaps_locations = [];
 		$this->filename_single = Sitemap::BASE_FILE_SINGLE;
@@ -137,6 +147,14 @@ class Runner {
 	 */
 	public function setAllowRelativePaths() {
 		$this->allow_relative_paths = true;
+	}
+
+	/**
+	 * Sets the maximum number of items for each sitemap
+	 * @return void
+	 */
+	public function setMaxUrls(int $max_items) {
+		$this->max_urls = $max_items;
 	}
 
 	/**
@@ -201,6 +219,14 @@ class Runner {
 	 */
 	public function addCountURLs() {
 		$this->count_urls++;
+	}
+
+	/**
+	 * Get the max number of urls per sitemap
+	 * @return void
+	 */
+	public function getMaxUrls() {
+		return $this->max_urls;
 	}
 
 	/**
@@ -334,7 +360,7 @@ class Runner {
 			}
 		}
 
-		if ($this->getCurrentSitemap()->getSize() >= Sitemap::MAX_URLS) {
+		if ($this->getCurrentSitemap()->getSize() >= $this->getMaxUrls()) {
 			$this->getCurrentSitemap()->write(true);
 			$this->sitemaps_locations[] = $this->getCurrentSitemap()->getWebAddress(true);
 			$this->addSitemap();
